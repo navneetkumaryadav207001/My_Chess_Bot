@@ -2,37 +2,165 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Chess AI – ONNX</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Play Against Navneet</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css" />
   <style>
-    body { font-family: Arial, sans-serif; background: #f0f0f0; text-align: center; padding: 20px; }
-    #board { width: 400px; margin: 20px auto; box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); }
-    button { padding: 10px 20px; margin: 5px; font-size: 16px; cursor: pointer; }
-    #status { font-weight: bold; margin-top: 10px; }
-    #loading { display: none; font-style: italic; color: #666; }
+    /* Global Styles */
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      background: #333333; 
+      margin: 0;
+      padding: 0px; 
+      color: #d3aa77;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .Page {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      width: 100%;
+      max-width: 1200px;
+      
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    /* Board Section */
+    .board-half {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 320px; /* Mobile width */
+      max-width: 600px;
+    }
+
+    #board {
+      width: 100%;
+      max-width: 500px; /* Prevents board from getting too huge on desktop */
+      aspect-ratio: 1 / 1;
+      touch-action: none; /* Helps with mobile dragging */
+    }
+
+    /* Menu Section */
+    .menu-half {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-width: 300px;
+      padding-top: 15%;
+      height: 100%;
+    }
+
+    /* Avatars and UI Elements */
+    .opponent-avatar {
+      color: white;
+      font-weight: bold;
+      margin: 15px 0;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      max-width: 500px;
+    }
+
+    .cc-avatar-img {
+        border-radius: 4px;
+        object-fit: cover;
+    }
+
+    .light-text {
+      color: #f0f0f0ae;
+      font-weight: 500;
+    }
+
+    /* Chessboard Overrides */
+    .board-b72b1 {
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+      border-radius: 4px;
+      background-color: #d3aa77;
+      border: 2px solid #222;
+    }
+
+    .white-1e1d7 { background-color: #981811 !important; }
+    .black-3c85d { background-color: #d3aa77 !important; }
+
+    /* Controls */
+    #status { font-weight: bold; margin: 15px 0; text-align: center; height: 1.2em; }
+    #loading { display: none; font-style: italic; color: #999; margin-bottom: 10px; }
+
+    button {
+      background-color: #981811;
+      color: white;
+      border: 1px solid black;
+      border-radius: 5px;
+      padding: 12px 20px;
+      margin: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      width: 200px;
+      transition: all 0.2s ease;
+      box-shadow: inset 0 0 9px rgba(0, 0, 0, 0.4);
+    }
+
+    button:hover {
+      background-color: #d3aa77;
+      color: black;
+    }
+
+    /* Responsive Breakpoints */
+    @media (max-width: 850px) {
+      .Page { flex-direction: column; align-items: center; }
+      .menu-half { padding-top: 10px; }
+      body { background-color: #333333; } /* Kept original dark bg, changed from your red media query for better UX */
+    }
+
+    @media (max-width: 400px) {
+        button { width: 100%; max-width: 250px; }
+    }
   </style>
 </head>
 <body>
-  <h1>Chess AI (ONNX)</h1>
-  <p>You play <b>White</b>. AI plays <b>Black</b>.</p>
 
-  <div id="board"></div>
+<div class="Page">
+    <div class="board-half">
+        <div class="opponent-avatar">
+            <img class="cc-avatar-img" src="image.png" alt="Navneet" height="40" width="40">
+            Navneet <span class="light-text">(∞)</span>
+        </div>
 
-  <div>
-    <button id="startBtn">Start</button>
-    <button id="resetBtn">Reset</button>
-    <button id="undoBtn">Undo</button>
-  </div>
+        <div id="board"></div>
 
-  <div id="status">Initializing...</div>
-  <div id="loading">AI thinking...</div>
+        <div class="opponent-avatar">
+            <img class="cc-avatar-img" src="https://www.chess.com/bundles/web/images/black_400.png" alt="You" height="40" width="40">
+            You <span class="light-text">(0)</span>
+        </div>
+    </div>
 
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
+    <div class="menu-half">
+        <div id="status">Initializing...</div>
+        <div id="loading">Navneet is thinking...</div>
+        
+        <button id="startBtn">New Game</button>
+        <button id="undoBtn">Undo Move</button>
+        <button id="resetBtn">Reset Board</button>
+    </div>
+</div>
 
-  <script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
+
+<script>
     let board = null;
     let game = new Chess();
     let session = null;
@@ -41,155 +169,147 @@
     const loadingEl = document.getElementById("loading");
 
     async function loadModel() {
-      try {
-        session = await ort.InferenceSession.create("./model_pretrained_14002.onnx");
-        statusEl.textContent = "Model loaded. Click Start to play.";
-      } catch (e) {
-        console.error(e);
-        statusEl.textContent = "Error: Could not load ONNX model.";
-      }
+        try {
+            session = await ort.InferenceSession.create("./model_pretrained_14002.onnx");
+            statusEl.textContent = "Model loaded. Good luck!";
+        } catch (e) {
+            console.error(e);
+            statusEl.textContent = "Error: Model not found.";
+        }
     }
 
     function initBoard() {
-      board = Chessboard("board", {
-        position: "start",
-        orientation: "white", // Changed to white
-        draggable: true,
-        onDragStart,
-        onDrop,
-        onSnapEnd,
-        pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
-      });
+        const config = {
+            position: 'start',
+            draggable: true,
+            orientation: 'white',
+            onDragStart: onDragStart,
+            onDrop: onDrop,
+            onSnapEnd: onSnapEnd,
+            pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
+        };
+        board = Chessboard('board', config);
+        
+        // This is the key for responsiveness
+        $(window).resize(board.resize);
     }
 
-    function onDragStart(source, piece) {
-      if (game.game_over() || !session) return false;
-      // ONLY allow moves for White (user)
-      if (game.turn() !== "w" || piece.search(/^b/) !== -1) return false;
+    function onDragStart(source, piece, position, orientation) {
+        if (game.game_over()) return false;
+        if (game.turn() === 'b' || piece.search(/^b/) !== -1) return false;
     }
 
     async function onDrop(source, target) {
-      const move = game.move({
-        from: source,
-        to: target,
-        promotion: "q"
-      });
+        const move = game.move({
+            from: source,
+            to: target,
+            promotion: 'q'
+        });
 
-      if (move === null) return "snapback";
+        if (move === null) return 'snapback';
 
-      updateStatus();
-      
-      // If it is now Black's turn, trigger AI
-      if (!game.game_over() && game.turn() === 'b') {
-        loadingEl.style.display = "block";
-        setTimeout(makeAIMove, 250);
-      }
+        updateStatus();
+        
+        if (!game.game_over()) {
+            loadingEl.style.display = "block";
+            window.setTimeout(makeAIMove, 250);
+        }
     }
 
     function onSnapEnd() {
-      board.position(game.fen());
+        board.position(game.fen());
     }
 
     async function makeAIMove() {
-  if (!session || game.game_over()) return;
+        if (!session || game.game_over()) return;
 
-  try {
-    const inputTensor = boardToTensor(game.board());
-    const results = await session.run({ [session.inputNames[0]]: inputTensor });
-    const logits = results[session.outputNames[0]].data;
+        try {
+            const inputTensor = boardToTensor(game.board());
+            const results = await session.run({ [session.inputNames[0]]: inputTensor });
+            const logits = results[session.outputNames[0]].data;
 
-    const legalMoves = game.moves({ verbose: true });
-    const temperature = 1.0; // Adjust this: 0.1 = Robotic, 2.0 = Random/Wild
+            const legalMoves = game.moves({ verbose: true });
+            const temperature = 1.0;
 
-    // 1. Get scores for legal moves and apply Temperature
-    let movesWithScores = legalMoves.map(move => {
-      const idx = squareToIndex(move.from) * 64 + squareToIndex(move.to);
-      return { move, score: Math.exp((logits[idx] || -10) / temperature) };
-    });
+            let movesWithScores = legalMoves.map(move => {
+                const idx = squareToIndex(move.from) * 64 + squareToIndex(move.to);
+                return { move, score: Math.exp((logits[idx] || -10) / temperature) };
+            });
 
-    // 2. Calculate sum for normalization
-    const sumScore = movesWithScores.reduce((a, b) => a + b.score, 0);
+            const sumScore = movesWithScores.reduce((a, b) => a + b.score, 0);
+            let randomThreshold = Math.random() * sumScore;
+            let selectedMove = movesWithScores[0].move;
 
-    // 3. Pick a move based on weighted probability
-    let randomThreshold = Math.random() * sumScore;
-    let selectedMove = movesWithScores[0].move;
+            for (const item of movesWithScores) {
+                randomThreshold -= item.score;
+                if (randomThreshold <= 0) {
+                    selectedMove = item.move;
+                    break;
+                }
+            }
 
-    for (const item of movesWithScores) {
-      randomThreshold -= item.score;
-      if (randomThreshold <= 0) {
-        selectedMove = item.move;
-        break;
-      }
+            game.move(selectedMove);
+            board.position(game.fen());
+        } catch (err) {
+            console.error("AI Error:", err);
+        }
+        loadingEl.style.display = "none";
+        updateStatus();
     }
 
-    game.move(selectedMove);
-    board.position(game.fen());
-  } catch (err) {
-    console.error("AI Error:", err);
-  }
-  loadingEl.style.display = "none";
-  updateStatus();
-}
-
     function boardToTensor(boardArray) {
-      const map = {
-        p: -1, n: -2, b: -3, r: -4, q: -5, k: -6,
-        P: 1, N: 2, B: 3, R: 4, Q: 5, K: 6
-      };
-      const data = new Float32Array(64);
-      for (let r = 0; r < 8; r++) {
-        for (let c = 0; c < 8; c++) {
-          const piece = boardArray[r][c];
-          const idx = (7 - r) * 8 + c; 
-          data[idx] = piece ? map[piece.color === 'w' ? piece.type.toUpperCase() : piece.type] : 0;
+        const map = { p: -1, n: -2, b: -3, r: -4, q: -5, k: -6, P: 1, N: 2, B: 3, R: 4, Q: 5, K: 6 };
+        const data = new Float32Array(64);
+        for (let r = 0; r < 8; r++) {
+            for (let c = 0; c < 8; c++) {
+                const piece = boardArray[r][c];
+                const idx = (7 - r) * 8 + c; 
+                data[idx] = piece ? map[piece.color === 'w' ? piece.type.toUpperCase() : piece.type] : 0;
+            }
         }
-      }
-      return new ort.Tensor("float32", data, [1, 64]);
+        return new ort.Tensor("float32", data, [1, 64]);
     }
 
     function squareToIndex(sq) {
-      const file = sq.charCodeAt(0) - 97; 
-      const rank = parseInt(sq[1], 10) - 1; 
-      return rank * 8 + file;
+        const file = sq.charCodeAt(0) - 97; 
+        const rank = parseInt(sq[1], 10) - 1; 
+        return rank * 8 + file;
     }
 
     function updateStatus() {
-      let status = "";
-      let moveColor = game.turn() === "w" ? "White" : "Black";
-
-      if (game.in_checkmate()) {
-        status = "Checkmate! " + (game.turn() === 'w' ? 'AI (Black)' : 'You (White)') + " wins.";
-      } else if (game.in_draw()) {
-        status = "Game over, draw.";
-      } else {
-        status = moveColor + " to move";
-        if (game.in_check()) status += " (Check!)";
-      }
-      statusEl.textContent = status;
+        let status = "";
+        if (game.in_checkmate()) {
+            status = "Checkmate! " + (game.turn() === 'w' ? 'Navneet wins.' : 'You win!');
+        } else if (game.in_draw()) {
+            status = "Draw!";
+        } else {
+            status = (game.turn() === "w" ? "Your turn" : "Navneet is thinking...");
+            if (game.in_check()) status += " (Check!)";
+        }
+        statusEl.textContent = status;
     }
 
     document.getElementById("startBtn").onclick = () => {
-      game.reset();
-      board.start();
-      board.orientation('white');
-      updateStatus();
+        game.reset();
+        board.start();
+        updateStatus();
     };
 
     document.getElementById("resetBtn").onclick = () => {
-      game.reset();
-      board.start();
-      statusEl.textContent = "Reset.";
+        game.reset();
+        board.start();
+        statusEl.textContent = "Board reset.";
     };
 
     document.getElementById("undoBtn").onclick = () => {
-      game.undo(); // Undo Black (AI)
-      game.undo(); // Undo White (Player)
-      board.position(game.fen());
-      updateStatus();
+        game.undo(); // Undo Black
+        game.undo(); // Undo White
+        board.position(game.fen());
+        updateStatus();
     };
 
     loadModel();
     initBoard();
-  </script>
+</script>
 </body>
 </html>
